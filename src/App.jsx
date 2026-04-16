@@ -10,6 +10,7 @@ import ModelPortfolio from "./pages/ModelPortfolio";
 import Services from "./pages/Services";
 import ServiceProvider from "./pages/ServiceProvider";
 import ProductDetail from "./pages/ProductDetail";
+import FashionListing from "./pages/FashionListing";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -33,6 +34,7 @@ function App() {
           <Route path="models" element={<Models />} />
           <Route path="model/:modelId" element={<ModelPortfolio />} />
           <Route path="services" element={<Services />} />
+          <Route path="fashion" element={<FashionListing />} />
           <Route path="service/:serviceId" element={<ServiceProvider />} />
         </Route>
       </Routes>

@@ -5,9 +5,11 @@ import Footer from "./Footer";
 
 export default function Layout() {
   const location = useLocation();
+  const isHomePage = location.pathname === "/";
+
   return (
     <div className="flex flex-col min-h-screen">
-      <Navbar />
+      {!isHomePage && <Navbar />}
       <AnimatePresence mode="wait">
         <motion.main
           key={location.pathname}
@@ -20,7 +22,7 @@ export default function Layout() {
           <Outlet />
         </motion.main>
       </AnimatePresence>
-      <Footer />
+      {!isHomePage && <Footer />}
     </div>
   );
 }

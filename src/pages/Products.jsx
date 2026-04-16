@@ -1,18 +1,40 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { products } from "../data/mockData";
 import { ProductCard } from "../components/ProductCard";
 import { Filter, ArrowUpDown } from "lucide-react";
 
-const CATEGORIES = ["All Products", "Furniture", "Digital Assets", "Lighting", "Accessories"];
+const CATEGORIES = ["All Products", "Fashion", "Mobiles", "Beauty", "Electronics", "Home", "Appliances"];
 
 const MIN_PRICE = 0;
 const MAX_PRICE = 30000;
 
 export default function Products() {
-  const [selectedCategory, setSelectedCategory] = useState("All Products");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const categoryParam = searchParams.get("category");
+
+  const [selectedCategory, setSelectedCategory] = useState(categoryParam || "All Products");
   const [priceMin, setPriceMin] = useState(MIN_PRICE);
   const [priceMax, setPriceMax] = useState(MAX_PRICE);
   const [sortOrder, setSortOrder] = useState("none"); // "none" | "asc" | "desc"
+
+  useEffect(() => {
+    if (categoryParam && CATEGORIES.includes(categoryParam)) {
+      setSelectedCategory(categoryParam);
+    } else if (!categoryParam) {
+      setSelectedCategory("All Products");
+    }
+  }, [categoryParam]);
+
+  const handleCategoryChange = (cat) => {
+    setSelectedCategory(cat);
+    if (cat === "All Products") {
+      searchParams.delete("category");
+    } else {
+      searchParams.set("category", cat);
+    }
+    setSearchParams(searchParams);
+  };
 
   const filteredProducts = useMemo(() => {
     const filtered = products.filter((p) => {
@@ -33,21 +55,6 @@ export default function Products() {
     <div className="min-h-screen bg-slate-50 py-16">
       <div className="container mx-auto px-4 lg:px-8">
 
-        {/* Header Section */}
-        <div className="mb-16 border-b border-slate-200 pb-12 mt-4 flex flex-col md:flex-row gap-8 justify-between items-start md:items-end w-full">
-          <div>
-            <span className="text-blue-600 font-bold uppercase tracking-widest text-[10px] mb-4 block">
-              THE DIGITAL CURATOR
-            </span>
-            <h1 className="text-4xl md:text-5xl lg:text-7xl font-sans font-bold text-slate-900 tracking-tight leading-tight">
-              Premium Goods for<br />
-              <span className="text-blue-600 italic">Natural Products.</span>
-            </h1>
-          </div>
-          <p className="text-slate-500 text-sm md:text-base max-w-sm leading-relaxed">
-            A clinical selection of architectural assets and designer objects, curated for the intellectual creator.
-          </p>
-        </div>
 
         {/* Content Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
@@ -61,7 +68,7 @@ export default function Products() {
               {CATEGORIES.map((cat) => (
                 <li key={cat}>
                   <button
-                    onClick={() => setSelectedCategory(cat)}
+                    onClick={() => handleCategoryChange(cat)}
                     className={`w-full flex justify-between items-center px-4 py-3 rounded-full transition-all font-semibold text-sm ${
                       selectedCategory === cat
                         ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
@@ -132,8 +139,25 @@ export default function Products() {
             </div>
           </aside>
 
-          {/* Product Grid */}
+          {/* Product Grid Area */}
           <main className="lg:col-span-3">
+            {/* Mobile Category Navigation */}
+            <div className="flex md:hidden overflow-x-auto no-scrollbar gap-2 mb-8 pb-2">
+              {CATEGORIES.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => handleCategoryChange(cat)}
+                  className={`whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-black transition-all border shadow-sm ${
+                    selectedCategory === cat
+                      ? "bg-blue-600 text-white border-blue-600 shadow-blue-200"
+                      : "bg-white text-slate-600 border-slate-200 hover:border-blue-400"
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+
             {/* Sort Bar */}
             <div className="flex items-center gap-3 mb-8">
               <span className="flex items-center gap-1.5 text-slate-500 text-xs font-semibold uppercase tracking-wider">
@@ -174,7 +198,7 @@ export default function Products() {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 mb-16">
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-8 mb-16">
                 {filteredProducts.map((p) => (
                   <ProductCard key={p.id} item={p} />
                 ))}

@@ -1,58 +1,86 @@
-import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { products, models, serviceProviders } from "../data/mockData";
-import { ProductCard } from "../components/ProductCard";
-import { ModelCard } from "../components/ModelCard";
-import { ServiceCard } from "../components/ServiceCard";
-import { HeroCarousel } from "../components/HeroCarousel";
-import { ArrowRight } from "lucide-react";
+import { products } from "../data/mockData";
+import ResponsiveContainer from "../components/mobile/ResponsiveContainer";
+import NexoraHeader from "../components/mobile/NexoraHeader";
+import NexoraSearch from "../components/mobile/NexoraSearch";
+import NexoraCategories from "../components/mobile/NexoraCategories";
+import NexoraCarousel from "../components/mobile/NexoraCarousel";
+import ProductScroll from "../components/mobile/ProductScroll";
+import PromoBanner from "../components/mobile/PromoBanner";
+import NexoraBottomNav from "../components/mobile/NexoraBottomNav";
+import SkeletonLoader from "../components/mobile/SkeletonLoader";
 
 export default function Home() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate initial loading for skeleton effect
+    const timer = setTimeout(() => setIsLoading(false), 1200);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Filter some products for the scroll sections
+  const personalizedProducts = products.map(p => ({
+    ...p,
+    discount: Math.floor(Math.random() * 40) + 10
+  })).slice(0, 6);
+
+  const bestSellingProducts = products.slice(0, 6);
+
   return (
-    <div className="flex flex-col min-h-screen">
-      <HeroCarousel />
-
-      <section className="py-20 bg-slate-50">
-        <div className="container mx-auto px-4">
-          <SectionHeader title="Grab the best deal on" highlightedWord="Products" link="/products" />
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-            {products.slice(0, 4).map((p) => (
-              <ProductCard key={p.id} item={p} />
-            ))}
+    <ResponsiveContainer>
+      <NexoraHeader />
+      <NexoraSearch />
+      
+      <main className="pb-24">
+        {isLoading ? (
+          <div className="max-w-7xl mx-auto px-4 py-6 flex md:justify-center gap-6 md:gap-12 overflow-x-hidden">
+            {[1, 2, 3, 4, 5, 6].map(i => <SkeletonLoader key={i} type="category" />)}
           </div>
+        ) : (
+          <NexoraCategories />
+        )}
 
-          <SectionHeader title="Shop From Top" highlightedWord="Categories" link="/models" className="mt-16" />
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-            {models.slice(0, 4).map((m) => (
-              <ModelCard key={m.id} item={m} />
-            ))}
-          </div>
+        {isLoading ? (
+          <div className="max-w-7xl mx-auto px-4"><SkeletonLoader type="banner" /></div>
+        ) : (
+          <NexoraCarousel />
+        )}
 
-          <SectionHeader title="Daily" highlightedWord="Essentials" link="/services" className="mt-16" />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {serviceProviders.slice(0, 3).map((s) => (
-              <ServiceCard key={s.id} item={s} />
-            ))}
+        {isLoading ? (
+          <div className="max-w-7xl mx-auto px-4 py-8 flex gap-6 overflow-x-hidden">
+            {[1, 2, 3, 4].map(i => <SkeletonLoader key={i} type="card" />)}
           </div>
+        ) : (
+          <ProductScroll title="Still looking for these?" products={personalizedProducts} />
+        )}
+
+        <div className="max-w-7xl mx-auto">
+          <PromoBanner 
+            image="https://images.unsplash.com/photo-1593642632823-8f785ba67e45?q=80&w=2066&auto=format&fit=crop"
+            title="Premium Home Appliances"
+            subtitle="Upgrade your smart living today"
+            position="right"
+          />
         </div>
-      </section>
-    </div>
-  );
-}
 
-function SectionHeader({ title, highlightedWord, link, className = "" }) {
-  return (
-    <div className={`flex justify-between items-end mb-8 border-b border-slate-200 pb-3 ${className}`}>
-      <div className="relative">
-        <h2 className="text-xl md:text-2xl font-sans font-medium text-slate-700">
-          {title} {highlightedWord && <span className="text-[#008ecc] font-semibold">{highlightedWord}</span>}
-        </h2>
-        <div className="absolute -bottom-[13px] left-0 h-[2px] bg-[#008ecc] w-full max-w-[120px]" />
-      </div>
-      <Link to={link} className="flex items-center gap-1 text-sm font-semibold text-slate-500 hover:text-[#008ecc] transition-colors">
-        View All 
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-      </Link>
-    </div>
-  )
+        <ProductScroll title="Trending Now" products={bestSellingProducts} />
+
+        <div className="max-w-7xl mx-auto px-4 py-12 text-center bg-slate-50 border-y border-slate-100 mt-8 mb-12 rounded-3xl mx-4">
+          <p className="text-blue-600 text-xs md:text-sm uppercase font-black tracking-[0.3em] mb-3">The Nexora Collection</p>
+          <h2 className="text-slate-900 font-display font-black text-2xl md:text-4xl max-w-2xl mx-auto leading-tight">
+            Curated premium products for the modern lifestyle.
+          </h2>
+          <Link to="/products">
+            <button className="mt-8 bg-slate-900 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-600 transition-colors shadow-lg">
+              Explore All Categories
+            </button>
+          </Link>
+        </div>
+      </main>
+
+      <NexoraBottomNav />
+    </ResponsiveContainer>
+  );
 }
