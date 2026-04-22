@@ -1,7 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { products } from "../data/mockData";
-import { ArrowLeft, ShoppingCart, Tag, Share2, CheckCircle2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { ArrowLeft, Share2, CheckCircle2 } from "lucide-react";
+import { useState } from "react";
 
 const WHATSAPP_NUMBER = "919999999999";
 
@@ -26,6 +26,34 @@ export default function ProductDetail() {
       `Hi! I'm interested in buying *${product.title}* from *${product.shopName}* priced at ₹${product.price}. Could you please help me with the order?`
     );
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, "_blank");
+  };
+
+  const handleShare = async () => {
+    const productUrl = window.location.href;
+    const shareData = {
+      title: product.title,
+      text: `Check out ${product.title} from ${product.shopName}`,
+      url: productUrl,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+        return;
+      }
+
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(productUrl);
+        window.alert("Product link copied to clipboard.");
+        return;
+      }
+
+      window.prompt("Copy this product link:", productUrl);
+    } catch (error) {
+      if (error?.name !== "AbortError") {
+        window.prompt("Copy this product link:", productUrl);
+      }
+    }
   };
 
   const allImages = [product.image, ...(product.additionalImages || [])];
@@ -107,25 +135,24 @@ export default function ProductDetail() {
                 )}
               </div>
               
-              <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-3">
                 <button 
                   onClick={handleBuyNow}
-                  className="w-full bg-[#25D366] hover:bg-[#1ebe5d] text-white py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-lg shadow-emerald-200"
+                  className="flex-1 bg-[#25D366] hover:bg-[#1ebe5d] text-white py-5 rounded-2xl font-bold text-base sm:text-lg flex items-center justify-center gap-2.5 whitespace-nowrap transition-all active:scale-[0.98] shadow-lg shadow-emerald-200"
                 >
-                  <svg viewBox="0 0 24 24" className="w-6 h-6 fill-white" xmlns="http://www.w3.org/2000/svg">
+                  <svg viewBox="0 0 24 24" className="w-5 h-5 sm:w-6 sm:h-6 fill-white shrink-0" xmlns="http://www.w3.org/2000/svg">
                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
                     <path d="M12 0C5.373 0 0 5.373 0 12c0 2.117.554 4.103 1.523 5.824L.057 23.486a.5.5 0 0 0 .614.614l5.7-1.484A11.938 11.938 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 0 1-5.032-1.385l-.36-.214-3.733.97.992-3.614-.235-.374A9.808 9.808 0 0 1 2.182 12C2.182 6.57 6.569 2.182 12 2.182S21.818 6.57 21.818 12 17.431 21.818 12 21.818z" />
                   </svg>
                   Buy via WhatsApp
                 </button>
-                <div className="flex gap-4">
-                  <button className="flex-1 bg-white border border-slate-200 text-slate-800 py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors">
-                    <Tag className="w-5 h-5 opacity-60" /> Save Item
-                  </button>
-                  <button className="p-4 bg-white border border-slate-200 text-slate-800 rounded-2xl flex items-center justify-center hover:bg-slate-50 transition-colors">
-                    <Share2 className="w-5 h-5 opacity-60" />
-                  </button>
-                </div>
+                <button
+                  onClick={handleShare}
+                  className="p-4 bg-white border border-slate-200 text-slate-800 rounded-2xl flex items-center justify-center hover:bg-slate-50 transition-colors"
+                  aria-label="Share this product"
+                >
+                  <Share2 className="w-5 h-5 opacity-60" />
+                </button>
               </div>
             </div>
 

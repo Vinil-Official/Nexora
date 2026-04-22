@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
-import { Home, Grid, Zap, User, ShoppingCart } from 'lucide-react';
+import React from 'react';
+import { Home, Grid, Zap } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 export default function NexoraBottomNav() {
-  const [activeTab, setActiveTab] = useState('Home');
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
 
   const navItems = [
-    { name: 'Home', icon: <Home size={22} /> },
-    { name: 'Categories', icon: <Grid size={22} /> },
-    { name: 'Deals', icon: <Zap size={22} /> },
-    { name: 'Account', icon: <User size={22} /> },
-    { name: 'Cart', icon: <ShoppingCart size={22} />, badge: 19 },
+    { name: 'Home', path: '/', icon: <Home size={22} /> },
+    { name: 'Categories', path: '/products', icon: <Grid size={22} /> },
+    { name: 'Spl Deal', path: '/fashion', icon: <Zap size={22} /> },
   ];
 
   return (
@@ -17,9 +17,10 @@ export default function NexoraBottomNav() {
       {navItems.map((item) => (
         <button
           key={item.name}
-          onClick={() => setActiveTab(item.name)}
+          onClick={() => navigate(item.path)}
+          type="button"
           className={`relative flex flex-col items-center gap-1 transition-all duration-300 ${
-            activeTab === item.name ? 'text-blue-600 scale-110' : 'text-slate-400'
+            pathname === item.path ? 'text-blue-600 scale-110' : 'text-slate-400'
           }`}
         >
           <div className="relative">
@@ -31,11 +32,11 @@ export default function NexoraBottomNav() {
             )}
           </div>
           <span className={`text-[10px] font-bold uppercase transition-all ${
-            activeTab === item.name ? 'opacity-100 translate-y-0' : 'opacity-70'
+            pathname === item.path ? 'opacity-100 translate-y-0' : 'opacity-70'
           }`}>
             {item.name}
           </span>
-          {activeTab === item.name && (
+          {pathname === item.path && (
             <div className="absolute -bottom-1 w-1 h-1 bg-blue-600 rounded-full" />
           )}
         </button>

@@ -2,7 +2,8 @@ import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { products } from "../data/mockData";
 import { ProductCard } from "../components/ProductCard";
-import { Filter, ArrowUpDown } from "lucide-react";
+import { Filter, ArrowUpDown, Sparkles, Loader2 } from "lucide-react";
+import { semanticSearch } from "../lib/groq";
 
 const CATEGORIES = ["All Products", "Fashion", "Mobiles", "Beauty", "Electronics", "Home", "Appliances"];
 
@@ -12,11 +13,16 @@ const MAX_PRICE = 30000;
 export default function Products() {
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryParam = searchParams.get("category");
+  const searchQuery = searchParams.get("q") || "";
+  const isAiSearch = searchParams.get("ai") === "true";
 
   const [selectedCategory, setSelectedCategory] = useState(categoryParam || "All Products");
   const [priceMin, setPriceMin] = useState(MIN_PRICE);
   const [priceMax, setPriceMax] = useState(MAX_PRICE);
   const [sortOrder, setSortOrder] = useState("none"); // "none" | "asc" | "desc"
+  
+  const [aiResultIds, setAiResultIds] = useState(null);
+  const [isAiLoading, setIsAiLoading] = useState(false);
 
   useEffect(() => {
     if (categoryParam && CATEGORIES.includes(categoryParam)) {
@@ -36,16 +42,48 @@ export default function Products() {
     setSearchParams(searchParams);
   };
 
+  useEffect(() => {
+    async function runAiSearch() {
+      if (searchQuery && isAiSearch) {
+        setIsAiLoading(true);
+        const ids = await semanticSearch(searchQuery, products);
+        setAiResultIds(ids);
+        setIsAiLoading(false);
+      } else {
+        setAiResultIds(null);
+      }
+    }
+    runAiSearch();
+  }, [searchQuery, isAiSearch]);
+
   const filteredProducts = useMemo(() => {
-    const filtered = products.filter((p) => {
+    let base = products;
+
+    // AI Semantic Filtering
+    if (isAiSearch && aiResultIds) {
+      base = products.filter(p => aiResultIds.includes(p.id));
+    } 
+    // Basic Text Filtering (fallback or if AI is off)
+    else if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      base = products.filter(p => 
+        p.title.toLowerCase().includes(q) || 
+        p.category.toLowerCase().includes(q) ||
+        p.brand?.toLowerCase().includes(q) ||
+        p.fullDescription?.toLowerCase().includes(q)
+      );
+    }
+
+    const filtered = base.filter((p) => {
       const matchCat = selectedCategory === "All Products" || p.category === selectedCategory;
       const matchPrice = p.price >= priceMin && p.price <= priceMax;
       return matchCat && matchPrice;
     });
+
     if (sortOrder === "asc") return [...filtered].sort((a, b) => a.price - b.price);
     if (sortOrder === "desc") return [...filtered].sort((a, b) => b.price - a.price);
     return filtered;
-  }, [selectedCategory, priceMin, priceMax, sortOrder]);
+  }, [selectedCategory, priceMin, priceMax, sortOrder, searchQuery, isAiSearch, aiResultIds]);
 
   // Track column width % for the filled range track
   const minPct = ((priceMin - MIN_PRICE) / (MAX_PRICE - MIN_PRICE)) * 100;
@@ -159,34 +197,55 @@ export default function Products() {
             </div>
 
             {/* Sort Bar */}
-            <div className="flex items-center gap-3 mb-8">
-              <span className="flex items-center gap-1.5 text-slate-500 text-xs font-semibold uppercase tracking-wider">
-                <ArrowUpDown className="w-3.5 h-3.5" /> Sort by Price
-              </span>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setSortOrder(sortOrder === "asc" ? "none" : "asc")}
-                  className={`px-4 py-1.5 rounded-full text-xs font-bold border transition-all ${
-                    sortOrder === "asc"
-                      ? "bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-600/20"
-                      : "border-slate-200 text-slate-600 hover:border-blue-400 hover:text-blue-600"
-                  }`}
-                >
-                  Low → High
-                </button>
-                <button
-                  onClick={() => setSortOrder(sortOrder === "desc" ? "none" : "desc")}
-                  className={`px-4 py-1.5 rounded-full text-xs font-bold border transition-all ${
-                    sortOrder === "desc"
-                      ? "bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-600/20"
-                      : "border-slate-200 text-slate-600 hover:border-blue-400 hover:text-blue-600"
-                  }`}
-                >
-                  High → Low
-                </button>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+              <div className="flex items-center gap-3">
+                <span className="flex items-center gap-1.5 text-slate-500 text-xs font-semibold uppercase tracking-wider">
+                  <ArrowUpDown className="w-3.5 h-3.5" /> Sort by Price
+                </span>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setSortOrder(sortOrder === "asc" ? "none" : "asc")}
+                    className={`px-4 py-1.5 rounded-full text-xs font-bold border transition-all ${
+                      sortOrder === "asc"
+                        ? "bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-600/20"
+                        : "border-slate-200 text-slate-600 hover:border-blue-400 hover:text-blue-600"
+                    }`}
+                  >
+                    Low → High
+                  </button>
+                  <button
+                    onClick={() => setSortOrder(sortOrder === "desc" ? "none" : "desc")}
+                    className={`px-4 py-1.5 rounded-full text-xs font-bold border transition-all ${
+                      sortOrder === "desc"
+                        ? "bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-600/20"
+                        : "border-slate-200 text-slate-600 hover:border-blue-400 hover:text-blue-600"
+                    }`}
+                  >
+                    High → Low
+                  </button>
+                </div>
               </div>
+
+              {searchQuery && (
+                <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-2xl border border-slate-100 shadow-sm self-start">
+                  <span className="text-xs text-slate-400 font-bold uppercase tracking-tight">Results for</span>
+                  <span className="text-sm font-black text-slate-800">"{searchQuery}"</span>
+                  {isAiSearch && (
+                    <div className="flex items-center gap-1 bg-blue-50 text-blue-600 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase ml-1 animate-pulse">
+                      <Sparkles size={10} /> AI Enhanced
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-            {filteredProducts.length === 0 ? (
+
+            {isAiLoading ? (
+              <div className="flex flex-col items-center justify-center py-32 text-slate-400">
+                <Loader2 className="w-10 h-10 animate-spin text-blue-500 mb-4" />
+                <p className="font-bold text-lg text-slate-800">AI is curating your selection...</p>
+                <p className="text-sm">Finding the most relevant products for you</p>
+              </div>
+            ) : filteredProducts.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-24 text-slate-400">
                 <span className="text-5xl mb-4">🔍</span>
                 <p className="font-semibold text-lg">No products match your filters.</p>

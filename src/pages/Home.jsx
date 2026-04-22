@@ -8,7 +8,6 @@ import NexoraCategories from "../components/mobile/NexoraCategories";
 import NexoraCarousel from "../components/mobile/NexoraCarousel";
 import ProductScroll from "../components/mobile/ProductScroll";
 import PromoBanner from "../components/mobile/PromoBanner";
-import NexoraBottomNav from "../components/mobile/NexoraBottomNav";
 import SkeletonLoader from "../components/mobile/SkeletonLoader";
 
 export default function Home() {
@@ -79,8 +78,6 @@ export default function Home() {
           </Link>
         </div>
       </main>
-
-      <NexoraBottomNav />
     </ResponsiveContainer>
   );
 }

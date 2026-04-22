@@ -17,7 +17,7 @@ export const shops = [
   }
 ];
 
-export const products = [
+const seedProducts = [
   {
     id: "prod-1",
     title: "Minimalist Watch",
@@ -158,6 +158,99 @@ export const products = [
     shopName: "Star4well Official"
   }
 ];
+
+const PRODUCT_TARGET_PER_CATEGORY = 20;
+const PRODUCT_TEST_CATEGORIES = ["Fashion", "Mobiles", "Beauty", "Electronics", "Home", "Appliances"];
+
+const CATEGORY_IMAGE_POOL = {
+  Fashion: [
+    "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=1974&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=1974&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1485968579580-b6d095142e6e?q=80&w=1974&auto=format&fit=crop"
+  ],
+  Mobiles: [
+    "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=1974&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1598327105666-5b89351aff97?q=80&w=1974&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1567581935884-3349723552ca?q=80&w=1974&auto=format&fit=crop"
+  ],
+  Beauty: [
+    "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=1974&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?q=80&w=1974&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1583241801142-3c4a8fd7f0b7?q=80&w=1974&auto=format&fit=crop"
+  ],
+  Electronics: [
+    "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1974&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1587202372634-32705e3bf49c?q=80&w=1974&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1580894894513-fd4b61ff1f79?q=80&w=1974&auto=format&fit=crop"
+  ],
+  Home: [
+    "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=1974&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?q=80&w=1974&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1560185007-cde436f6a4d0?q=80&w=1974&auto=format&fit=crop"
+  ],
+  Appliances: [
+    "https://images.unsplash.com/photo-1586208958839-06c17cacdf08?q=80&w=1974&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?q=80&w=1974&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1586208959939-08f0f0ce4c4d?q=80&w=1974&auto=format&fit=crop"
+  ]
+};
+
+function createGeneratedProduct(category, index) {
+  const isTechCategory = category === "Electronics" || category === "Mobiles";
+  const imagePool = CATEGORY_IMAGE_POOL[category] || CATEGORY_IMAGE_POOL.Electronics;
+  const image = imagePool[index % imagePool.length];
+  const altImage1 = imagePool[(index + 1) % imagePool.length];
+  const altImage2 = imagePool[(index + 2) % imagePool.length];
+  const price = 799 + index * 123;
+  const originalPrice = price + 700 + (index % 5) * 350;
+  const discountPct = Math.min(85, Math.max(10, Math.round(((originalPrice - price) / originalPrice) * 100)));
+  const idPrefix = category.toLowerCase().replace(/\s+/g, "-");
+  const shopId = isTechCategory ? "shop-2" : "shop-1";
+  const shopName = isTechCategory ? "TechNova" : "Aura Essentials";
+  const brandPrefix = isTechCategory ? "TechNova" : "Aura";
+
+  const baseProduct = {
+    id: `${idPrefix}-test-${index}`,
+    title: `${category} Test Product ${index}`,
+    brand: `${brandPrefix} Labs`,
+    price,
+    originalPrice,
+    category,
+    tag: index % 4 === 0 ? "LIMITED" : "IN STOCK",
+    image,
+    fullDescription: `Test dataset item ${index} for ${category}. Created to help validate listing filters, search, sorting, and detail view rendering across larger product volumes.`,
+    additionalImages: [altImage1, altImage2],
+    shopId,
+    shopName,
+    rating: Number((3.4 + (index % 13) * 0.1).toFixed(1)),
+    reviewsCount: 50 + index * 7
+  };
+
+  if (category === "Fashion") {
+    return {
+      ...baseProduct,
+      subtitle: `Fashion fit collection ${index}`,
+      discount: `${discountPct}% OFF`,
+      tag: index % 5 === 0 ? "BESTSELLER" : "AD",
+      bankOffer: `â‚¹${Math.max(199, price - 50)} with Bank offer`,
+      itemTag: index % 2 === 0 ? "#StraightFit" : "#StreetStyle",
+      statusTag: index % 3 === 0 ? "trendy" : undefined
+    };
+  }
+
+  return baseProduct;
+}
+
+const generatedProducts = PRODUCT_TEST_CATEGORIES.flatMap((category) => {
+  const existingCount = seedProducts.filter((product) => product.category === category).length;
+  const missingCount = Math.max(0, PRODUCT_TARGET_PER_CATEGORY - existingCount);
+
+  return Array.from({ length: missingCount }, (_, i) =>
+    createGeneratedProduct(category, i + 1)
+  );
+});
+
+export const products = [...seedProducts, ...generatedProducts];
 
 export const models = [
   {

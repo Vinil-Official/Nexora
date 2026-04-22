@@ -1,7 +1,9 @@
 import React from 'react';
 import { Search, ShoppingCart, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function FashionHeader() {
+  const navigate = useNavigate();
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-slate-100 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center gap-3">
@@ -11,16 +13,26 @@ export default function FashionHeader() {
         </button>
 
         {/* Search Bar */}
-        <div className="flex-1 relative group">
+        <form 
+          className="flex-1 relative group"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const query = e.target.search.value;
+            if (query.trim()) {
+              navigate(`/products?q=${encodeURIComponent(query)}`);
+            }
+          }}
+        >
           <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors">
             <Search className="w-4 h-4" />
           </div>
           <input 
+            name="search"
             type="text" 
             placeholder="Search for products"
             className="w-full bg-slate-50 border border-slate-200 rounded-full py-2.5 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400"
           />
-        </div>
+        </form>
 
         {/* Cart Icon */}
         <button className="relative p-2.5 hover:bg-slate-50 rounded-full transition-colors">

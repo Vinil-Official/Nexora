@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Layout from "./components/Layout";
+import Preloader from "./components/Preloader";
 import Home from "./pages/Home";
 import Products from "./pages/Products";
 import Shops from "./pages/Shops";
@@ -21,6 +22,20 @@ function ScrollToTop() {
 }
 
 function App() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setIsLoading(false);
+    }, 1200);
+
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return <Preloader />;
+  }
+
   return (
     <BrowserRouter>
       <ScrollToTop />
